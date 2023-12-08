@@ -1,0 +1,21 @@
+int buzzerPin2 = 4;
+int PIR = 35;
+int lectura_PIR;
+
+void setup() {
+  pinMode(buzzerPin2, OUTPUT);
+  pinMode(PIR, INPUT);
+  Serial.begin(9600);
+  digitalWrite(buzzerPin2,LOW);
+}
+
+void loop() {
+  lectura_PIR = digitalRead(PIR);
+  Serial.println(lectura_PIR);
+  if(lectura_PIR == 1){
+    Serial.println("Alarma");
+    digitalWrite(buzzerPin2,HIGH);
+  }else{
+   digitalWrite(buzzerPin2,LOW);
+  }
+}
