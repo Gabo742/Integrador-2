@@ -1,4 +1,4 @@
-int buzzerPin2 = 4;
+int buzzerPin2 = 32;
 int PIR = 35;
 int lectura_PIR;
 
