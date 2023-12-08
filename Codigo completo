@@ -47,8 +47,8 @@ void setup(){
   pinMode(PIR, INPUT);
   digitalWrite(buzzerPin2,LOW);
 
-  servoMotor.attach(15);
-  lcd.init(); // initialize the lcd
+  servoMotor.attach(15); //declaramos el pin del servo motor
+  lcd.init(); // iniciamos la pantalla lcd
   lcd.backlight();
   lcd.print("Password:");
   servoMotor.write(0);
