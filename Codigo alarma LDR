@@ -1,5 +1,5 @@
-int buzzerPin = 27;
-float sensor = 34;
+int buzzerPin = 33;
+int sensor = 34;
 int lectura;
 
 void setup() {
@@ -10,7 +10,7 @@ void setup() {
 }
 
 void loop() {
-  lectura = analogRead(sensor);
+  lectura = digitalRead(sensor);
   Serial.println(lectura);
   if(lectura < 100){
     Serial.println("Alarma");
