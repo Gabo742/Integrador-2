@@ -3,8 +3,8 @@
 #include <Wire.h>
 #include <ESP32Servo.h> //Libreria para utilizar el servo motor
 
-int buzzerPin = 27; //asignacion de PIN del buzzer en pin 27
-float sensor = 34; //asignacion de PIN del buzzer en pin 27
+int buzzerPin = 33; //asignacion de PIN del buzzer en pin 27
+int sensor = 34; //asignacion de PIN del buzzer en pin 27
 int lectura; //asignacion de PIN del buzzer en pin 27
 int buzzerPin2 = 32; //asignacion de PIN del buzzer en pin 27
 int PIR = 35; //asignacion de PIN del buzzer en pin 27
