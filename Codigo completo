@@ -1,6 +1,6 @@
 #include <Keypad.h> //Libreria para utilizar el teclado 4x4
 #include <LiquidCrystal_I2C.h> //Libreria para utilizar la pantalla LCD I2C
-#include <Wire.h>
+#include <Wire.h> //Libreria para conectarnos a pantallas I2C
 #include <ESP32Servo.h> //Libreria para utilizar el servo motor
 
 int buzzerPin = 33; //asignacion de PIN del buzzer en pin 27
@@ -25,125 +25,125 @@ char keys[ROW_NUM][COLUMN_NUM] = {
 byte pin_rows[ROW_NUM]      = {19, 18, 5, 17}; // GPIO19, GPIO18, GPIO5, GPIO17 conectan a los pines en fila
 byte pin_column[COLUMN_NUM] = {16, 4, 0, 2};   // GPIO16, GPIO4, GPIO0, GPIO2 conectan a los pines en columna
 
-Keypad keypad = Keypad(makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_NUM );
+Keypad keypad = Keypad(makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_NUM ); //Mapea las teclas del teclado 4X4 por filas y columnas
 LiquidCrystal_I2C lcd(0x27, 16, 2); // La direccion del LCD I2C es 0x27, 16 columnas y 2 filas.
 
 String password = "1234"; // Clave inicial
-String enteredPassword = "";
+String enteredPassword = ""; //Variable string para indicar que ahi se va a guardar la clave ingresada
 
 enum States {
   AWAIT_INPUT,
   CHANGE_PASSWORD
-}; //declaramos los estados del lector LCD para la activacion del servo motor
-States currentState = AWAIT_INPUT;
+}; //declaramos los estados para la activacion del servo motor
+States currentState = AWAIT_INPUT; //estado actual es esperando entrada de clave
 
 void setup(){
-  pinMode(buzzerPin, OUTPUT);
-  pinMode(sensor, INPUT);
-  Serial.begin(9600);
-  digitalWrite(buzzerPin,LOW);
+  pinMode(buzzerPin, OUTPUT); //indicamos el pin del buzzerpin como salida
+  pinMode(sensor, INPUT); //indicamos el pin del sensorLDR como entrada
+  Serial.begin(9600); // indicamos la tasa de transferencia de datos
+  digitalWrite(buzzerPin,LOW); //damos la instruccion que el buzzer se mantenga apagado
 
-  pinMode(buzzerPin2, OUTPUT);
-  pinMode(PIR, INPUT);
-  digitalWrite(buzzerPin2,LOW);
+  pinMode(buzzerPin2, OUTPUT); //indicamos el pin del buzzerpin2 como salida
+  pinMode(PIR, INPUT); //indicamos el pin del PIR como entrada
+  digitalWrite(buzzerPin2,LOW); //damos la instruccion que el buzzer2 se mantenga apagado
 
   servoMotor.attach(15); //declaramos el pin del servo motor
   lcd.init(); // iniciamos la pantalla lcd
-  lcd.backlight();
-  lcd.print("Password:");
-  servoMotor.write(0);
+  lcd.backlight(); //iniciamos la iluminacion de la LCD
+  lcd.print("Password:"); //imprimimos el mensaje password en la LCD
+  servoMotor.write(0); //indicamos que el servomotor tiene que iniciar en la posicion 0 grados
 }
 
 void loop(){
 
-  lectura = analogRead(sensor);
-  Serial.println(lectura);
-  if(lectura < 100){
-    Serial.println("Alarma LDR");
-    digitalWrite(buzzerPin,HIGH);
+  lectura = digitalRead(sensor); //leemos la salida digitial del sensor LDR
+  Serial.println(lectura); //Imprimimos en el monitor serial el valor de lectura
+  if(lectura == 1){ //condicionamos si la lectura del LDR es igual a 1
+    Serial.println("Alarma LDR"); //Imprimimos en el monitor serial las palabras "Alarma LDR"
+    digitalWrite(buzzerPin,HIGH); //Indicamos que el buzzer tiene que encenderse.
   }else{
-   digitalWrite(buzzerPin,LOW);
+   digitalWrite(buzzerPin,LOW); //Indicamos que el buzzer tiene que estar apagado en caso contrario (LDR == 0)
+  } 
+
+  lectura_PIR = digitalRead(PIR); //leemos la salida digitial del sensor PIR
+  Serial.println(lectura_PIR); //Imprimimos en el monitor serial el valor de lectura_PIR
+  if(lectura_PIR == 1){ //condicionamos si la lectura del LDR es igual a 1
+    Serial.println("Alarma PIR"); //Imprimimos en el monitor serial las palabras "Alarma PIR"
+    digitalWrite(buzzerPin2,HIGH); //Indicamos que el buzzer tiene que encenderse.
+  }else{ 
+   digitalWrite(buzzerPin2,LOW); //Indicamos que el buzzer tiene que estar apagado en caso contrario (PIR == 0)
   }
 
-  lectura_PIR = digitalRead(PIR);
-  Serial.println(lectura_PIR);
-  if(lectura_PIR == 1){
-    Serial.println("Alarma PIR");
-    digitalWrite(buzzerPin2,HIGH);
-  }else{
-   digitalWrite(buzzerPin2,LOW);
-  }
+  char key = keypad.getKey(); // se almacena los caracteres retornados por el teclado 4X4 en la variable key de tipo char
 
-  char key = keypad.getKey();
-
-  if (key) {
-    if (currentState == AWAIT_INPUT) {
+  if (key) { //condicionamos si tenemos un valor amacenado
+    if (currentState == AWAIT_INPUT) { //condicionamos si el estado actual es igual a await_input
       processEntry(key); //funcion para ingresar la clave
     } 
-    else if (currentState == CHANGE_PASSWORD) {
+    else if (currentState == CHANGE_PASSWORD) { //si el estado no es esperando entrada y si es change_password entonces realizar lo siguiente
       processPasswordChange(key); //funcion para cambiar la clave
     }
   }
 }
 
-void processEntry(char key) {
+void processEntry(char key) { //funcion de ingresar clave
   if (key == 'A' ) { // ingresa la clave
-    if (enteredPassword == password) {
-      lcd.clear();
-      lcd.print("Access granted");
-      servoMotor.write(180);      
-      delay(2000);
-      servoMotor.write(0);
+    if (enteredPassword == password) { //condicionamos si el valor ingresado es identico a la variable password que se declaro anteriormente
+      lcd.clear(); //Limpiamos la pantalla LCD
+      lcd.print("Access granted"); //Indicamos que se dio acceso
+      servoMotor.write(180); //Indicamos al servo motor a moverse 180 grados
+      delay(2000); //damos un delay de 2000 milisegundos
+      servoMotor.write(0); //Regresamos el servo motor a la posicion 0
     } 
-    else {
-      lcd.clear();
-      lcd.print("Access denied");
-      delay(2000);
+    else { //de lo contrario
+      lcd.clear(); //limpiamos la LCD
+      lcd.print("Access denied"); //Indicamos que no se dio el acceso.
+      delay(2000); //damos un delay de 2000 milisegundos
     }
-    lcd.clear();
-    lcd.print("Enter Password");
-    enteredPassword = "";
+    lcd.clear(); //Limpiamos la LCD
+    lcd.print("Enter Password"); //Preguntamos por la clave
+    enteredPassword = ""; // devolvemos la variable enteredpassword a su estado original
   } 
-  else if (key == 'B' ) { // limpia la pantalla
-    enteredPassword = "";
-    lcd.clear();
-    lcd.setCursor(0,0);    
-    lcd.print("Password:");
-    lcd.setCursor(0,1);
-    lcd.print(" ");
+  else if (key == 'B' ) { // si se presiona la tecla "B" limpia la pantalla
+    enteredPassword = ""; //devolvemos la variabla enterespassword a su estado original
+    lcd.clear(); //limpiamos la LCD
+    lcd.setCursor(0,0); //devolvemos la posicion del LCD a columna 0 fila 0
+    lcd.print("Password:"); //imprimimos la palabra password para solicitar la clave
+    lcd.setCursor(0,1); //posicionamos la LCD a columna 0 fila 1
+    lcd.print(" "); //imprime un espacio por cada tecla ingresada
   } 
-  else if (key == 'C') { // change password
-    currentState = CHANGE_PASSWORD;
-    lcd.clear();
-    lcd.print("New Password:");
-    enteredPassword = "";
+  else if (key == 'C') { // cambia la clave
+    currentState = CHANGE_PASSWORD; cambia el estado a change_password
+    lcd.clear(); //limpiamos la LCD
+    lcd.print("New Password:"); //Solicitamos la nueva clave
+    enteredPassword = ""; //Ingresamos el valor de la nueva clave
   } 
   else {
-    enteredPassword += key;
-    lcd.setCursor(enteredPassword.length()-1,1);
-    lcd.print("*");
+    enteredPassword += key; //concatenamos las teclas ingresadas dentro de la variable enterespassword
+    lcd.setCursor(enteredPassword.length()-1,1); //devolvemos la LCD a la posicion inicial
+    lcd.print("*"); //imprimimos * por caracter ingresado
   }
 }
 
-void processPasswordChange(char key) {
+void processPasswordChange(char key) { //funcion de cambio de clave
   if (key == 'A' ) { // ingrese nueva clave
-    currentState = AWAIT_INPUT;
-    password = enteredPassword; 
-    lcd.clear();
-    lcd.print("Pwd changed");
-    delay(2000);
-    lcd.clear();
-    lcd.print("Enter Password");
-    enteredPassword = "";
+    currentState = AWAIT_INPUT; //cambia el estado a await_input
+    password = enteredPassword; //cambiamos la variable password por lo ingresado en la funcion anterior al momento de presionar "C"
+    lcd.clear(); //limpiamos la LCD
+    lcd.print("Pwd changed"); //Imprimimos que la clave se cambio
+    delay(2000); //damos un delay de 2000 milisegundos
+    lcd.clear(); //limpios la pantalla
+    lcd.print("Enter Password"); //solicitamos la clave
+    enteredPassword = ""; //devolvemos la variable enteredpassword a su estado original
   } 
   else if (key == 'B' ) { // limpia la pantalla
-    enteredPassword = "";
-    lcd.setCursor(0,1);
-    lcd.print("");
+    enteredPassword = ""; //devolvemos la variable enteredpassword a su estado original
+    lcd.setCursor(0,1); //devolvemos la LCD a la posicion columna 0 fila 1
+    lcd.print(""); //Imprimimos la LCD en vacio
   } 
   else {
-    enteredPassword += key;
-    lcd.setCursor(enteredPassword.length(), 1);
-    lcd.print(key);
+    enteredPassword += key; //concatenamos las teclas ingresadas dentro de la variable enterespassword
+    lcd.setCursor(enteredPassword.length(), 1);//devolvemos la LCD a la posicion inicial
+    lcd.print(key);//imprimimos los caracteres ingresados
   }
 }
